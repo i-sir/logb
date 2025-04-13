@@ -2,14 +2,10 @@
 setlocal enabledelayedexpansion
 title 执行log-b提交github任务
 
-
+:main_loop
 ::删除之前的记录
-del /q "D:\phpstudy_pro\WWW\git\log-b\git_log\*.*"
+del /q "D:\phpstudy_pro\WWW\git\log-b\git_log\*.*" >nul 2>&1
 
-
-
- 
- 
 REM 获取当前日期和时间
 for /f "delims=" %%a in ('wmic OS Get localdatetime ^| find "."') do set datetime=%%a
 
@@ -31,52 +27,30 @@ set "filecontent=%year%-%month%-%day% %hour%:%minute%:%second%"
 REM 创建文件
 echo %filecontent% > "%target_dir%\%filename%"
 
-
-::换行空白符
-echo ^.
-echo ^..
-echo ^...
-echo ^....
-echo ^.....
-echo ^......
-echo ^.......
-echo ^........
-::展示根目录
-echo 文件已创建：%target_dir%\%filename%
-echo ^........
-echo ^......
-echo ^.....
-echo ^....
-echo ^...
-echo ^..
-echo ^.
-
-
-
-
-
+::显示信息
+call :display_info "文件已创建：%target_dir%\%filename%"
 
 ::执行Git提交
-
-:: 获取当前脚本的路径  根目录
-cd ..
-echo 开始执行; %CD%
-
-::进入根目录 ,提交代码
-cd /d %~dp0
+cd /d "D:\phpstudy_pro\WWW\git\log-b"
 git add . 
 git commit -m "提交; %date:~0,4%-%date:~5,2%-%date:~8,2%; %time:~0,8%"
 git push -f origin master
 
-::错误提示一下,不会继续执行
-if %errorlevel% neq 0 (  
-    echo 提交失败请查看错误原因
-    ::循环执行
-	cd /d D:\phpstudy_pro\WWW\git\log-b
-	call test.bat
-) 
-	
-::换行空白符
+::错误处理
+if %errorlevel% neq 0 (
+    call :display_info "提交失败请查看错误原因"
+    timeout /t 60 >nul  // 失败后等待1分钟再重试
+    goto main_loop
+)
+
+call :display_info "已执行完成 %CD%"
+call :display_info "等待3600秒(1小时)后再次执行"
+
+::等待1小时后再次执行
+timeout /t 3600 >nul 
+goto main_loop
+
+:display_info
 echo ^.
 echo ^..
 echo ^...
@@ -85,8 +59,7 @@ echo ^.....
 echo ^......
 echo ^.......
 echo ^........
-::展示根目录
-echo 已执行完成 %CD%
+echo %~1
 echo ^........
 echo ^......
 echo ^.....
@@ -94,41 +67,4 @@ echo ^....
 echo ^...
 echo ^..
 echo ^.
-
-
-
-::换行空白符
-echo ^.
-echo ^..
-echo ^...
-echo ^....
-echo ^.....
-echo ^......
-echo ^.......
-echo ^........
-::展示根目录
-echo 随机数为:3600
-echo ^........
-echo ^......
-echo ^.....
-echo ^....
-echo ^...
-echo ^..
-echo ^.
-
-
-
-
-::隔30秒执行一次
-::timeout /t %randomNumber% > nul 
-
-::3600秒,一个小时 执行一次
-timeout /t 3600 > nul 
-
-
-::循环执行
-cd /d D:\phpstudy_pro\WWW\git\log-b
-call test.bat
-
- 
- 
+goto :eof
